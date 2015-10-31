@@ -17,6 +17,27 @@ use File::Spec;
 use Time::HiRes qw( usleep gettimeofday tv_interval );
 use Cache::Memcached::Fast;
 
+sub zip {
+    state $zip ||= do {
+        my $hash = {};
+        my $rows = db()->select_all('SELECT * FROM zip');
+        foreach my $row (@$rows) {
+            push @{ $hash->{ $row->{zipcode} } ||= [] }, $row;
+        }
+        $hash;
+    };
+}
+
+sub zipcode_to_addresses {
+    my $code = shift;
+    my $rows = zip()->{$code};
+    return [ map {
+        my $addr = join ' ', $_->{ken1}, $_->{ken2}, $_->{ken3};
+        $addr =~ s/\s+$//;
+        $addr
+    } @$rows ];
+}
+
 sub memd {
     state $memd ||= Cache::Memcached::Fast->new(
         { servers => [ { address => 'isu09c:11211' } ] },
@@ -307,6 +328,18 @@ get '/data' => [qw(set_global)] => sub {
         my $token_type = $endpoint{$service}->{token_type};
         my $token_key = $endpoint{$service}->{token_key};
         my $uri_template = $endpoint{$service}->{uri};
+        if ($service eq 'ken' || $service eq 'ken2') {
+            my $zipcode = ( $conf->{keys} || [] )->[0] || ($conf->{params} || {})->{zipcode};
+            push @$data, {
+                service => $service,
+                data => {
+                    zipcode => $zipcode,
+                    addresses => zipcode_to_addresses($zipcode),
+                },
+            };
+            next;
+        }
+
         my $headers = +{};
         my $params = $conf->{params} || +{};
         given ($token_type) {
@@ -330,6 +363,8 @@ get '/initialize' => sub {
     $c->res->headers->header('X-Dispatch' => 'GET-initialize');
     my $file = File::Spec->rel2abs("../../sql/initialize.sql", dirname(dirname(__FILE__)));
     system("psql", "-f", $file, "isucon5f");
+    my $file_zip = File::Spec->rel2abs("../../sql/initialize_zip.sql", dirname(dirname(__FILE__)));
+    system("psql", "-f", $file_zip, "isucon5f");
     system("sudo", "/etc/init.d/memcached", "restart");
     [200];
 };
