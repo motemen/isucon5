@@ -23,6 +23,51 @@ sub memd {
     );
 }
 
+my %endpoint = (
+   ken => {
+       meth => "GET",
+       token_type => "",
+       token_key => "",
+       uri => "http://api.five-final.isucon.net:8080/%s",
+   },
+   ken2 => {
+       meth => "GET",
+       token_type => "",
+       token_key => "",
+       uri => "http://api.five-final.isucon.net:8080/",
+   },
+   surname => {
+       meth => "GET",
+       token_type => "",
+       token_key => "",
+       uri => "http://api.five-final.isucon.net:8081/surname",
+   },
+   givenname => {
+       meth => "GET",
+       token_type => "",
+       token_key => "",
+       uri => "http://api.five-final.isucon.net:8081/givenname",
+   },
+   tenki => {
+       meth => "GET",
+       token_type => "param",
+       token_key => "zipcode",
+       uri => "http://api.five-final.isucon.net:8988/",
+   },
+   perfectsec => {
+       meth => "GET",
+       token_type => "header",
+       token_key => "X-PERFECT-SECURITY-TOKEN",
+       uri => "https://api.five-final.isucon.net:8443/tokens",
+   },
+   perfectsec_attacked => {
+       meth => "GET",
+       token_type => "header",
+       token_key => "X-PERFECT-SECURITY-TOKEN",
+       uri => "https://api.five-final.isucon.net:8443/attacked_list",
+   },
+);
+
 sub db {
     state $db ||= do {
         my %db = (
@@ -257,11 +302,11 @@ get '/data' => [qw(set_global)] => sub {
     my $data = [];
 
     while (my ($service, $conf) = each(%$arg)) {
-        my $row = db->select_row("SELECT meth, token_type, token_key, uri FROM endpoints WHERE service=?", $service);
-        my $method = $row->{meth};
-        my $token_type = $row->{token_type};
-        my $token_key = $row->{token_key};
-        my $uri_template = $row->{uri};
+        #my $row = db->select_row("SELECT meth, token_type, token_key, uri FROM endpoints WHERE service=?", $service);
+        my $method = $endpoint{$service}->{meth};
+        my $token_type = $endpoint{$service}->{token_type};
+        my $token_key = $endpoint{$service}->{token_key};
+        my $uri_template = $endpoint{$service}->{uri};
         my $headers = +{};
         my $params = $conf->{params} || +{};
         given ($token_type) {
