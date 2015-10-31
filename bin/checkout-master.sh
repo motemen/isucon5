@@ -1,6 +1,6 @@
 #!/bin/bash
 
-co_master() {
+checkout_master() {
     ssh -t $1 'cd ~/deploy && git checkout master && git pull'
 }
 
