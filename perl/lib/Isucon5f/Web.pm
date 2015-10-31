@@ -280,6 +280,7 @@ sub furl_conn_pool {
 
 sub fetch_api {
     my ($method, $uri, $headers, $params, $no_cache) = @_;
+    $no_cache = undef;
     my $client = Furl->new(
         ssl_opts => { SSL_verify_mode => SSL_VERIFY_NONE },
         connection_pool => furl_conn_pool(),
