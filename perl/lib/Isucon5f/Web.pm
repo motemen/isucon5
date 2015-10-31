@@ -340,7 +340,11 @@ get '/data' => [qw(set_global)] => sub {
             #        addresses => zipcode_to_addresses($zipcode),
             #    },
             #};
-            push @$data2, sprintf("{\"service\":\"%s\",\"data\":%s}", $service, encode_json($zipcode)); # todo
+            my $zip_json = encode_json({ # todo
+                zipcode   => $zipcode,
+                addresses => zipcode_to_addresses($zipcode),
+            });
+            push @$data2, sprintf("{\"service\":\"%s\",\"data\":%s}", $service, $zip_json);
             next;
         }
 
