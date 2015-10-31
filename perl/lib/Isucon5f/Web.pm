@@ -280,7 +280,7 @@ get '/data' => [qw(set_global)] => sub {
         if ($service eq 'ken' || $service eq 'ken2') {
             my $zipcode = ( $conf->{keys} || [] )->[0] || ($conf->{params} || {})->{zipcode};
             push @$data, {
-                service => $service
+                service => $service,
                 data => {
                     zipcode => $zipcode,
                     addresses => zipcode_to_addresses($zipcode),
