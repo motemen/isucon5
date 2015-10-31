@@ -7,11 +7,12 @@ $(function(){
   // $.get('/data', function(data){ render(data); });
 
   window.setInterval(function(){
-    var count = 0;
+    var count = 0, all_data = [];
     for (var i = 0; i < SERVICES.length; i++) {
       $.get('/data.s?service=' + SERVICES[i], function(data){
+        all_data = all_data.concat(data);
         if (++count === SERVICES.length) {
-          render(data);
+          render(all_data);
         }
       });
     }
@@ -22,7 +23,7 @@ $(function(){
     $.get('/data.s?service=' + SERVICES[i], function(data){
       all_data = all_data.concat(data);
       if (++count === SERVICES.length) {
-        render(data);
+        render(all_data);
       }
     });
   }
