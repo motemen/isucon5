@@ -330,7 +330,7 @@ sub fetch_api_cv {
 
     http_get $uri, headers => $headers, sub {
         my ($data) = @_;
-        memd->set($cache_key, $res->content);
+        memd->set($cache_key, $data);
         $cv->send(decode_json $data);
     };
 
