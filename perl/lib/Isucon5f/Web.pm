@@ -279,7 +279,7 @@ sub furl_conn_pool {
 }
 
 sub fetch_api {
-    my ($method, $uri, $headers, $params) = @_;
+    my ($method, $uri, $headers, $params, $no_cache) = @_;
     my $client = Furl->new(
         ssl_opts => { SSL_verify_mode => SSL_VERIFY_NONE },
         connection_pool => furl_conn_pool(),
@@ -287,10 +287,14 @@ sub fetch_api {
     $uri = URI->new($uri);
     $uri->query_form(%$params);
 
-    my $cache_key = "fetch_api:v1:$uri?" . join('&', map { "$_=$params->{$_}" } sort keys %$params);
-    my $cached = memd->get($cache_key);
-    if ($cached) {
-        return decode_json $cached;
+    if ($no_cache) {
+        # nop
+    } else {
+        my $cache_key = "fetch_api:v1:$uri?" . join('&', map { "$_=$params->{$_}" } sort keys %$params);
+        my $cached = memd->get($cache_key);
+        if ($cached) {
+            return decode_json $cached;
+        }
     }
 
     my $s = [gettimeofday];
@@ -303,7 +307,7 @@ sub fetch_api {
 
     warn join("\t", "uri:" . $uri->canonical, "time:" . tv_interval($s));
 
-    memd->set($cache_key, $res->content);
+    memd->set($cache_key, $res->content, 3);
 
     return decode_json($res->content);
 }
@@ -348,7 +352,12 @@ get '/data' => [qw(set_global)] => sub {
             }
         }
         my $uri = sprintf($uri_template, @{$conf->{keys} || []});
-        push @$data, { service => $service, data => fetch_api($method, $uri, $headers, $params) };
+        my $no_cache = {
+            tenki => 1,
+            perfectsec => 1,
+            perfectsec_attacked => 1,
+        }->{ $service };
+        push @$data, { service => $service, data => fetch_api($method, $uri, $headers, $params, $no_cache) };
     }
 
     $c->res->header('Content-Type', 'application/json');
