@@ -273,9 +273,18 @@ SQL
     $c->redirect('/modify');
 };
 
+use Furl::ConnectionCache;
+
+sub furl_conn_pool {
+    our $pool //= Furl::ConnectionCache->new;
+}
+
 sub fetch_api {
     my ($method, $uri, $headers, $params) = @_;
-    my $client = Furl->new(ssl_opts => { SSL_verify_mode => SSL_VERIFY_NONE });
+    my $client = Furl->new(
+        ssl_opts => { SSL_verify_mode => SSL_VERIFY_NONE },
+        connection_pool => furl_conn_pool(),
+    );
     $uri = URI->new($uri);
     $uri->query_form(%$params);
 
