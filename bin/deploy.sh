@@ -2,6 +2,10 @@
 
 set  -v
 
-ssh -t isu09a 'cd ~/deploy && git pull && cd ./perl && carton install --deployment && sudo supervisorctl restart perl'
-ssh -t isu09b 'cd ~/deploy && git pull && cd ./perl && carton install --deployment && sudo supervisorctl restart perl'
-ssh -t isu09c 'cd ~/deploy && git pull && cd ./perl && carton install --deployment && sudo supervisorctl restart perl'
+deploy() {
+    ssh -t $1 'cd ~/deploy && git pull && cd ./perl && rm -f cpanfile.snapshot && carton install && sudo supervisorctl restart perl'
+}
+
+deploy isu09a
+deploy isu09b
+deploy isu09c
