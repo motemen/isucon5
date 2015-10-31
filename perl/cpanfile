@@ -9,5 +9,6 @@ requires "IO::Socket::SSL";
 requires "String::Util";
 
 requires "Gazelle";
+requires "Starlet";
 requires "Server::Starter";
 requires 'Cache::Memcached::Fast';
