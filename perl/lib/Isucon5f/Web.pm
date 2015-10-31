@@ -71,7 +71,7 @@ my %endpoint = (
 sub db {
     state $db ||= do {
         my %db = (
-            host => $ENV{ISUCON5_DB_HOST} || 'localhost',
+            host => $ENV{ISUCON5_DB_HOST} || 'isu09c',
             port => $ENV{ISUCON5_DB_PORT} || 5432,
             username => $ENV{ISUCON5_DB_USER} || 'isucon',
             password => $ENV{ISUCON5_DB_PASSWORD},
