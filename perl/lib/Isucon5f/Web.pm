@@ -287,10 +287,10 @@ sub fetch_api {
     $uri = URI->new($uri);
     $uri->query_form(%$params);
 
+    my $cache_key = "fetch_api:v1:$uri?" . join('&', map { "$_=$params->{$_}" } sort keys %$params);
     if ($no_cache) {
         # nop
     } else {
-        my $cache_key = "fetch_api:v1:$uri?" . join('&', map { "$_=$params->{$_}" } sort keys %$params);
         my $cached = memd->get($cache_key);
         if ($cached) {
             return decode_json $cached;
@@ -307,7 +307,11 @@ sub fetch_api {
 
     warn join("\t", "uri:" . $uri->canonical, "time:" . tv_interval($s));
 
-    memd->set($cache_key, $res->content, 3);
+    if ($no_cache) {
+        # nop
+    } else {
+        memd->set($cache_key, $res->content, 3);
+    }
 
     return decode_json($res->content);
 }
