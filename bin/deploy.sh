@@ -9,3 +9,4 @@ set  -v
 deploy isu09a
 deploy isu09b
 deploy isu09c
+ssh -t isu09c '/etc/init.d/memacached restart'
