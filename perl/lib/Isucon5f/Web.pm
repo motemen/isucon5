@@ -304,7 +304,7 @@ sub fetch_api {
     warn join("\t", "uri:" . $uri->canonical, "time:" . tv_interval($s));
 
     if ($no_cache) {
-        memd->set($cache_key, $res->content, 3);
+        memd->set($cache_key, $res->content, 1);
     } else {
         memd->set($cache_key, $res->content);
     }
