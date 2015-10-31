@@ -22,7 +22,7 @@ sub zip {
         my $hash = {};
         my $rows = db()->select_all('SELECT * FROM zip');
         foreach my $row (@$rows) {
-            push @{ $hash->{ $_->{zipcode} } ||= [] }, $row;
+            push @{ $hash->{ $row->{zipcode} } ||= [] }, $row;
         }
     };
 }
