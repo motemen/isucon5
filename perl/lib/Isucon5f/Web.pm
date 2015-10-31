@@ -310,7 +310,7 @@ sub fetch_api {
     if ($no_cache) {
         # nop
     } else {
-        memd->set($cache_key, $res->content, 3);
+        memd->set($cache_key, $res->content);
     }
 
     return decode_json($res->content);
