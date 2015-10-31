@@ -13,6 +13,8 @@ CREATE TABLE users (
   grade grades
 );
 
+CREATE INDEX ON users (email, passhash);
+
 -- CREATE EXTENSION pgcrypto;
 
 CREATE TYPE token_types AS ENUM ('header', 'param');
