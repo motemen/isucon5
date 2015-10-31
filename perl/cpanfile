@@ -1,7 +1,6 @@
 requires "Kossy", 0.38;
 requires "DBIx::Sunny";
 
-requires "JSON::XS";
 requires "DBD::Pg";
 requires "Starman";
 requires "Plack::Session";
@@ -11,4 +10,4 @@ requires "String::Util";
 
 requires "Gazelle";
 requires "Server::Starter";
-
+requires 'Cache::Memcached::Fast';
