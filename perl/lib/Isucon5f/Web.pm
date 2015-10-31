@@ -19,7 +19,7 @@ use Cache::Memcached::Fast;
 
 sub memd {
     state $memd ||= Cache::Memcached::Fast->new(
-        { servers => [ { address => 'localhost:11211' } ] },
+        { servers => [ { address => 'isu09c:11211' } ] },
     );
 }
 
