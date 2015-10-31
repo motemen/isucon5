@@ -86,12 +86,14 @@ filter 'set_global' => sub {
 
 get '/signup' => [qw(set_global)] => sub {
     my ($self, $c) = @_;
+    $c->res->headers->header('X-Dispatch' => 'GET-signup');
     session = +{};
     $c->render('signup.tx');
 };
 
 post '/signup' => [qw(set_global)] => sub {
     my ($self, $c) = @_;
+    $c->res->headers->header('X-Dispatch' => 'POST-signup');
     my $params = $c->req->parameters;
     my $email = $params->{email};
     my $password = $params->{password};
@@ -115,17 +117,20 @@ SQL
 
 post '/cancel' => [qw(set_global)] => sub {
     my ($self, $c) = @_;
+    $c->res->headers->header('X-Dispatch' => 'POST-cancel');
     $c->redirect('/signup');
 };
 
 get '/login' => [qw(set_global)] => sub {
     my ($self, $c) = @_;
+    $c->res->headers->header('X-Dispatch' => 'GET-login');
     session = +{};
     $c->render('login.tx');
 };
 
 post '/login' => [qw(set_global)] => sub {
     my ($self, $c) = @_;
+    $c->res->headers->header('X-Dispatch' => 'POST-login');
     my $email = $c->req->param("email");
     my $password = $c->req->param("password");
     authenticate($email, $password);
@@ -135,12 +140,14 @@ post '/login' => [qw(set_global)] => sub {
 
 get '/logout' => [qw(set_global)] => sub {
     my ($self, $c) = @_;
+    $c->res->headers->header('X-Dispatch' => 'GET-logout');
     session = +{};
     $c->redirect('/login');
 };
 
 get '/' => [qw(set_global)] => sub {
     my ($self, $c) = @_;
+    $c->res->headers->header('X-Dispatch' => 'GET-index');
 
     if (!current_user()) {
         return $c->redirect('/login');
@@ -150,6 +157,7 @@ get '/' => [qw(set_global)] => sub {
 
 get '/user.js' => [qw(set_global)] => sub {
     my ($self, $c) = @_;
+    $c->res->headers->header('X-Dispatch' => 'GET-userjs');
     $c->halt(403) if !current_user();
     $c->res->header('Content-Type', 'application/javascript');
     $c->render('userjs.tx', { grade => current_user()->{grade} });
@@ -157,6 +165,7 @@ get '/user.js' => [qw(set_global)] => sub {
 
 get '/modify' => [qw(set_global)] => sub {
     my ($self, $c) = @_;
+    $c->res->headers->header('X-Dispatch' => 'GET-modify');
     my $user = current_user();
     $c->halt(403) if !$user;
     my $query = <<SQL;
@@ -168,6 +177,7 @@ SQL
 
 post '/modify' => [qw(set_global)] => sub {
     my ($self, $c) = @_;
+    $c->res->headers->header('X-Dispatch' => 'POST-modify');
     my $user = current_user();
     $c->halt(403) if !$user;
     my $params = $c->req->parameters;
@@ -214,6 +224,7 @@ sub fetch_api {
 
 get '/data' => [qw(set_global)] => sub {
     my ($self, $c) = @_;
+    $c->res->headers->header('X-Dispatch' => 'GET-data');
     my $user = current_user();
     $c->halt(403) if !$user;
 
@@ -248,6 +259,7 @@ get '/data' => [qw(set_global)] => sub {
 
 get '/initialize' => sub {
     my ($self, $c) = @_;
+    $c->res->headers->header('X-Dispatch' => 'GET-initialize');
     my $file = File::Spec->rel2abs("../../sql/initialize.sql", dirname(dirname(__FILE__)));
     system("psql", "-f", $file, "isucon5f");
     [200];
