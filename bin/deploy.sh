@@ -1,7 +1,7 @@
 #!/bin/bash
 
 deploy() {
-    ssh -t $1 'cd ~/deploy && git pull && cd ./perl && rm -f cpanfile.snapshot && carton install && sudo supervisorctl restart perl'
+    ssh -t $1 'cd ~/deploy && git pull && cd ./perl && rm -f cpanfile.snapshot && carton install && sudo supervisorctl restart perl && sudo /etc/init.d/nginx reload'
 }
 
 set  -v
