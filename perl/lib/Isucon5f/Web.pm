@@ -7,6 +7,7 @@ use utf8;
 use Kossy;
 use DBIx::Sunny;
 use JSON;
+use JSON::XS ();
 use Furl;
 use URI;
 use IO::Socket::SSL qw(SSL_VERIFY_NONE);
@@ -14,6 +15,13 @@ use String::Util qw(trim);
 use File::Basename qw(dirname);
 use File::Spec;
 use Time::HiRes qw( usleep gettimeofday tv_interval );
+use Cache::Memcached::Fast;
+
+sub memd {
+    state $memd ||= Cache::Memcached::Fast->new(
+        { servers => [ { address => 'localhost:11211' } ] },
+    );
+}
 
 sub db {
     state $db ||= do {
@@ -216,6 +224,12 @@ sub fetch_api {
     $uri = URI->new($uri);
     $uri->query_form(%$params);
 
+    my $cache_key = "fetch_api:v1:$uri?" . join('&', map { "$_=$params->{$_}" } sort keys %$params);
+    my $cached = memd->get($cache_key);
+    if ($cached) {
+        return decode_json $cached;
+    }
+
     my $s = [gettimeofday];
 
     my $res = $client->request(
@@ -225,6 +239,8 @@ sub fetch_api {
     );
 
     warn join("\t", "uri:" . $uri->canonical, "time:" . tv_interval($s));
+
+    memd->set($cache_key, $res->content);
 
     return decode_json($res->content);
 }
@@ -269,6 +285,7 @@ get '/initialize' => sub {
     $c->res->headers->header('X-Dispatch' => 'GET-initialize');
     my $file = File::Spec->rel2abs("../../sql/initialize.sql", dirname(dirname(__FILE__)));
     system("psql", "-f", $file, "isucon5f");
+    system("sudo", "/etc/init.d/memcached", "restart");
     [200];
 };
 
