@@ -235,6 +235,29 @@ get '/modify' => [qw(set_global)] => sub {
 SELECT arg FROM subscriptions WHERE user_id=?
 SQL
     my $arg = db->select_one($query, $user->{id});
+    foreach my $service (qw(tenki perfectsec perfectsec_attacked)) {
+        my $conf = $arg->{$service};
+        my $method = $endpoint{$service}->{meth};
+        my $token_type = $endpoint{$service}->{token_type};
+        my $token_key = $endpoint{$service}->{token_key};
+        my $uri_template = $endpoint{$service}->{uri};
+        my $headers = +{};
+        my $params = $conf->{params} || +{};
+        given ($token_type) {
+            when ('header') {
+                $headers->{$token_key} = $conf->{'token'};
+            }
+            when ('param') {
+                $params->{$token_key} = $conf->{'token'};
+            }
+        }
+        my $uri = sprintf($uri_template, @{$conf->{keys} || []});
+        $uri = URI->new($uri);
+        $uri->query_form(%$params);
+
+        my $cache_key = "fetch_api:v1:$uri?" . join('&', map { "$_=$params->{$_}" } sort keys %$params);
+        memd->delete($cache_key);
+    }
     $c->render('modify.tx', { user => $user, arg => $arg });
 };
 
