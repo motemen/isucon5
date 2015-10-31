@@ -17,6 +17,26 @@ use File::Spec;
 use Time::HiRes qw( usleep gettimeofday tv_interval );
 use Cache::Memcached::Fast;
 
+sub zip {
+    state $zip ||= do {
+        my $hash = {};
+        my $rows = db->select_all('SELECT * FROM zip');
+        foreach my $row (@$rows) {
+            push @{ $hash->{ $_->{zipcode} } ||= [] }, $row;
+        }
+    };
+}
+
+sub zipcode_to_addresses {
+    my $code = shift;
+    my $rows = zip->{$code};
+    return [ map {
+        my $addr = join ' ', $_->{ken1}, $_->{ken2}, $_->{ken3};
+        $addr =~ s/ 以下に掲載がない場合$//;
+        $addr
+    } @$rows ];
+}
+
 sub memd {
     state $memd ||= Cache::Memcached::Fast->new(
         { servers => [ { address => 'isu09c:11211' } ] },
@@ -257,6 +277,18 @@ get '/data' => [qw(set_global)] => sub {
     my $data = [];
 
     while (my ($service, $conf) = each(%$arg)) {
+        if ($service eq 'ken' || $service eq 'ken2') {
+            my $zipcode = ( $conf->{keys} || [] )->[0] || ($conf->{params} || {})->{zipcode};
+            push @$data, {
+                service => $service
+                data => {
+                    zipcode => $zipcode,
+                    addresses => zipcode_to_addresses($zipcode),
+                },
+            };
+            next;
+        }
+
         my $row = db->select_row("SELECT meth, token_type, token_key, uri FROM endpoints WHERE service=?", $service);
         my $method = $row->{meth};
         my $token_type = $row->{token_type};
