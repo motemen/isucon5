@@ -14,7 +14,7 @@ use IO::Socket::SSL qw(SSL_VERIFY_NONE);
 use String::Util qw(trim);
 use File::Basename qw(dirname);
 use File::Spec;
-use Time::HiRes qw( usleep gettimeofday tv_interval );
+#use Time::HiRes qw( usleep gettimeofday tv_interval );
 use Cache::Memcached::Fast;
 
 sub zipcode_to_addresses {
@@ -293,7 +293,7 @@ sub fetch_api {
         return decode_json $cached;
     }
 
-    my $s = [gettimeofday];
+    #my $s = [gettimeofday];
 
     my $res = $client->request(
         method => $method,
@@ -301,7 +301,7 @@ sub fetch_api {
         headers => [%$headers],
     );
 
-    warn join("\t", "uri:" . $uri->canonical, "time:" . tv_interval($s));
+    #warn join("\t", "uri:" . $uri->canonical, "time:" . tv_interval($s));
 
     if ($no_cache) {
         memd->set($cache_key, $res->content, 3);
