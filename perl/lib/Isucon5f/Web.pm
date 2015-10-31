@@ -19,7 +19,7 @@ use Cache::Memcached::Fast;
 use AnyEvent;
 use AnyEvent::HTTP;
 
-$AnyEvent::HTTP::MAX_PER_HOST = 1;
+$AnyEvent::HTTP::MAX_PER_HOST = 4;
 
 sub zip {
     state $zip ||= do {
