@@ -12,3 +12,4 @@ requires "Gazelle";
 requires "Starlet";
 requires "Server::Starter";
 requires 'Cache::Memcached::Fast';
+requires "Plack::Middleware::Session::Simple";
