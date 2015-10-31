@@ -9,4 +9,3 @@ requires "IO::Socket::SSL";
 requires "String::Util";
 requires "Cache::Memcached::Fast";
 requires "Plack::Middleware::Session::Simple";
-requires "Gazelle";
