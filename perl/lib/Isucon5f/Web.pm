@@ -285,6 +285,7 @@ get '/initialize' => sub {
     $c->res->headers->header('X-Dispatch' => 'GET-initialize');
     my $file = File::Spec->rel2abs("../../sql/initialize.sql", dirname(dirname(__FILE__)));
     system("psql", "-f", $file, "isucon5f");
+    system("sudo", "/etc/init.d/memcached", "restart");
     [200];
 };
 
