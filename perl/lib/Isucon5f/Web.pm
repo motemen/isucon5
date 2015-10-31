@@ -318,7 +318,7 @@ get '/initialize' => sub {
     my $file = File::Spec->rel2abs("../../sql/initialize.sql", dirname(dirname(__FILE__)));
     system("psql", "-f", $file, "isucon5f");
     my $file_zip = File::Spec->rel2abs("../../sql/initialize_zip.sql", dirname(dirname(__FILE__)));
-    system("sudo", "psql", "-f", $file_zip, "isucon5f");
+    system("psql", "-f", $file_zip, "isucon5f");
     system("sudo", "/etc/init.d/memcached", "restart");
     [200];
 };
