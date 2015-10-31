@@ -13,6 +13,7 @@ use IO::Socket::SSL qw(SSL_VERIFY_NONE);
 use String::Util qw(trim);
 use File::Basename qw(dirname);
 use File::Spec;
+use Time::HiRes qw( usleep gettimeofday tv_interval );
 
 sub db {
     state $db ||= do {
@@ -214,11 +215,17 @@ sub fetch_api {
     my $client = Furl->new(ssl_opts => { SSL_verify_mode => SSL_VERIFY_NONE });
     $uri = URI->new($uri);
     $uri->query_form(%$params);
+
+    my $s = [gettimeofday];
+
     my $res = $client->request(
         method => $method,
         url => $uri,
         headers => [%$headers],
     );
+
+    warn join("\t", "uri:" . $uri->canonical, "time:" . tv_interval($s));
+
     return decode_json($res->content);
 }
 
