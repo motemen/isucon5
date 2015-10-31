@@ -33,7 +33,7 @@ sub zipcode_to_addresses {
     my $rows = zip()->{$code};
     return [ map {
         my $addr = join ' ', $_->{ken1}, $_->{ken2}, $_->{ken3};
-        $addr =~ s/ 以下に掲載がない場合$//;
+        $addr =~ s/\s+$//;
         $addr
     } @$rows ];
 }
