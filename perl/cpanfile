@@ -14,3 +14,4 @@ requires 'Cache::Memcached::Fast';
 
 requires 'AnyEvent';
 requires 'AnyEvent::HTTP';
+requires 'EV';
