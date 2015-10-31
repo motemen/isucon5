@@ -22,7 +22,6 @@ sub zipcode_to_addresses {
     my $rows = db()->select_all('SELECT * FROM zip WHERE zipcode = ?', $code);
     return [ map {
         my $addr = join ' ', $_->{ken1}, $_->{ken2}, $_->{ken3};
-        $addr =~ s/\s+$//;
         $addr
     } @$rows ];
 }
