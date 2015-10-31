@@ -19,6 +19,8 @@ use Cache::Memcached::Fast;
 use AnyEvent;
 use AnyEvent::HTTP;
 
+$AnyEvent::HTTP::MAX_PER_HOST = 2;
+
 sub zip {
     state $zip ||= do {
         my $hash = {};
