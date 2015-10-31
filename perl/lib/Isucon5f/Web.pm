@@ -326,6 +326,7 @@ sub fetch_api_cv {
     my $cached = memd->get($cache_key);
     if ($cached) {
         $cv->send(decode_json $cached);
+        return;
     }
 
     my $s = [gettimeofday];
