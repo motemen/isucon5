@@ -18,6 +18,7 @@ use Time::HiRes qw( usleep gettimeofday tv_interval );
 use Cache::Memcached::Fast;
 use AnyEvent;
 use AnyEvent::HTTP;
+use EV;
 
 $AnyEvent::HTTP::MAX_PER_HOST = 4;
 
@@ -331,10 +332,11 @@ sub fetch_api_cv {
 
     my $s = [gettimeofday];
 
-    http_get $uri, headers => $headers, sub {
+    my $w; $w = http_get $uri, headers => $headers, sub {
         my ($data) = @_;
         memd->set($cache_key, $data);
         $cv->send(decode_json $data);
+        undef $w;
     };
 
     return $cv;
