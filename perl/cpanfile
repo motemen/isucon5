@@ -11,3 +11,4 @@ requires "String::Util";
 requires "Gazelle";
 requires "Server::Starter";
 requires 'Cache::Memcached::Fast';
+requires "Plack::Middleware::Session::Simple";
