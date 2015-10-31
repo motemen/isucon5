@@ -11,3 +11,6 @@ requires "String::Util";
 requires "Gazelle";
 requires "Server::Starter";
 requires 'Cache::Memcached::Fast';
+
+requires 'AnyEvent';
+requires 'AnyEvent::HTTP';

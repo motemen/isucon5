@@ -16,6 +16,8 @@ use File::Basename qw(dirname);
 use File::Spec;
 use Time::HiRes qw( usleep gettimeofday tv_interval );
 use Cache::Memcached::Fast;
+use AnyEvent;
+use AnyEvent::HTTP;
 
 sub zip {
     state $zip ||= do {
@@ -311,6 +313,30 @@ sub fetch_api {
     return decode_json($res->content);
 }
 
+sub fetch_api_cv {
+    my ($method, $uri, $headers, $params) = @_;
+    my $cv = AE::cv;
+
+    $uri = URI->new($uri);
+    $uri->query_form(%$params);
+
+    my $cache_key = "fetch_api:v1:$uri?" . join('&', map { "$_=$params->{$_}" } sort keys %$params);
+    my $cached = memd->get($cache_key);
+    if ($cached) {
+        $cv->send(decode_json $cached);
+    }
+
+    my $s = [gettimeofday];
+
+    http_get $uri, headers => $headers, sub {
+        my ($data) = @_;
+        memd->set($cache_key, $res->content);
+        $cv->send(decode_json $data);
+    };
+
+    return $cv;
+}
+
 get '/data' => [qw(set_global)] => sub {
     my ($self, $c) = @_;
     $c->res->headers->header('X-Dispatch' => 'GET-data');
@@ -321,6 +347,9 @@ get '/data' => [qw(set_global)] => sub {
     my $arg = from_json($arg_json);
 
     my $data = [];
+
+    my $all_cv = AE::cv;
+    $all_cv->begin();
 
     while (my ($service, $conf) = each(%$arg)) {
         #my $row = db->select_row("SELECT meth, token_type, token_key, uri FROM endpoints WHERE service=?", $service);
@@ -351,8 +380,18 @@ get '/data' => [qw(set_global)] => sub {
             }
         }
         my $uri = sprintf($uri_template, @{$conf->{keys} || []});
-        push @$data, { service => $service, data => fetch_api($method, $uri, $headers, $params) };
+        $all_cv->begin;
+
+        my $cv = fetch_api_cv($method, $uri, $headers, $params);
+        $cv->cb(sub {
+            my $d = $_[0]->recv;
+            push @$data, { service => $service, data => $d };
+            $all_cv->end;
+        });
     }
+
+    $all_cv->end;
+    $all_cv->wait;
 
     $c->res->header('Content-Type', 'application/json');
     $c->res->body(encode_json($data));
