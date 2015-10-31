@@ -332,7 +332,7 @@ sub fetch_api_cv {
 
     my $s = [gettimeofday];
 
-    my $w; $w = http_get $uri, headers => $headers, sub {
+    my $w; $w = http_get $uri, headers => $headers, tls_ctx => { verify => 0 }, sub {
         my ($data) = @_;
         memd->set($cache_key, $data);
         $cv->send(decode_json $data);
