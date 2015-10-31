@@ -7,16 +7,20 @@ $(function(){
   // $.get('/data', function(data){ render(data); });
 
   window.setInterval(function(){
+    var count = 0;
     for (var i = 0; i < SERVICES.length; i++) {
-      $.get('/data.s?service=' + SERVICES[i], function(data){ render(data); });
+      $.get('/data.s?service=' + SERVICES[i], function(data){
+        if (++count === SERVICES.length) {
+          render(data);
+        }
+      });
     }
   }, AIR_ISU_REFRESH_INTERVAL);
 
-  var all = [];
+  var count = 0;
   for (var i = 0; i < SERVICES.length; i++) {
     $.get('/data.s?service=' + SERVICES[i], function(data){
-      all = all.concat(data);
-      if (all.length === SERVICES.length) {
+      if (++count === SERVICES.length) {
         render(data);
       }
     });
