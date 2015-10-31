@@ -20,7 +20,7 @@ use Cache::Memcached::Fast;
 sub zip {
     state $zip ||= do {
         my $hash = {};
-        my $rows = db->select_all('SELECT * FROM zip');
+        my $rows = db()->select_all('SELECT * FROM zip');
         foreach my $row (@$rows) {
             push @{ $hash->{ $_->{zipcode} } ||= [] }, $row;
         }
