@@ -288,13 +288,9 @@ sub fetch_api {
     $uri->query_form(%$params);
 
     my $cache_key = "fetch_api:v1:$uri?" . join('&', map { "$_=$params->{$_}" } sort keys %$params);
-    if ($no_cache) {
-        # nop
-    } else {
-        my $cached = memd->get($cache_key);
-        if ($cached) {
-            return decode_json $cached;
-        }
+    my $cached = memd->get($cache_key);
+    if ($cached) {
+        return decode_json $cached;
     }
 
     my $s = [gettimeofday];
@@ -308,7 +304,7 @@ sub fetch_api {
     warn join("\t", "uri:" . $uri->canonical, "time:" . tv_interval($s));
 
     if ($no_cache) {
-        # nop
+        memd->set($cache_key, $res->content, 3);
     } else {
         memd->set($cache_key, $res->content);
     }
