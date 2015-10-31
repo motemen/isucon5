@@ -323,7 +323,7 @@ get '/data' => [qw(set_global)] => sub {
     my $arg = from_json($arg_json);
 
     my $data = [];
-    my $json_str = "";
+    my $data2 = [];
 
     while (my ($service, $conf) = each(%$arg)) {
         #my $row = db->select_row("SELECT meth, token_type, token_key, uri FROM endpoints WHERE service=?", $service);
@@ -344,7 +344,7 @@ get '/data' => [qw(set_global)] => sub {
                 zipcode   => $zipcode,
                 addresses => zipcode_to_addresses($zipcode),
             });
-            $json_str .= sprintf("{\"service\":\"%s\",\"data\":%s},", $service, $zip_json);
+            push @$data2, sprintf("{\"service\":\"%s\",\"data\":%s}", $service, $zip_json);
             next;
         }
 
@@ -360,14 +360,13 @@ get '/data' => [qw(set_global)] => sub {
         }
         my $uri = sprintf($uri_template, @{$conf->{keys} || []});
         #push @$data, { service => $service, data => fetch_api($method, $uri, $headers, $params) };
-        $json_str .= sprintf("{\"service\":\"%s\",\"data\":%s},", $service, fetch_api($method, $uri, $headers, $params));
+        push @$data2, sprintf("{\"service\":\"%s\",\"data\":%s}", $service, fetch_api($method, $uri, $headers, $params));
 
     }
 
     $c->res->header('Content-Type', 'application/json');
     #$c->res->body(encode_json($data));
-    $json_str =~ s/,$//;
-    $c->res->body( '[' . $json_str . ']' );
+    $c->res->body('[' . join(',', @$data2) . ']');
 };
 
 get '/initialize' => sub {
