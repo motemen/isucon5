@@ -22,20 +22,9 @@ use EV;
 
 $AnyEvent::HTTP::MAX_PER_HOST = 4;
 
-sub zip {
-    state $zip ||= do {
-        my $hash = {};
-        my $rows = db()->select_all('SELECT * FROM zip');
-        foreach my $row (@$rows) {
-            push @{ $hash->{ $row->{zipcode} } ||= [] }, $row;
-        }
-        $hash;
-    };
-}
-
 sub zipcode_to_addresses {
     my $code = shift;
-    my $rows = zip()->{$code};
+    my $rows = db()->select_all('SELECT * FROM zip WHERE zipcode = ?', $code);
     return [ map {
         my $addr = join ' ', $_->{ken1}, $_->{ken2}, $_->{ken3};
         $addr =~ s/\s+$//;
