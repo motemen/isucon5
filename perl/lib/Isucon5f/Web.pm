@@ -290,7 +290,8 @@ sub fetch_api {
     my $cache_key = "fetch_api:v1:$uri?" . join('&', map { "$_=$params->{$_}" } sort keys %$params);
     my $cached = memd->get($cache_key);
     if ($cached) {
-        return decode_json $cached;
+        #return decode_json $cached;
+        return $cached;
     }
 
     my $s = [gettimeofday];
@@ -305,7 +306,8 @@ sub fetch_api {
 
     memd->set($cache_key, $res->content);
 
-    return decode_json($res->content);
+    #return decode_json($res->content);
+    return $res->content;
 }
 
 get '/data' => [qw(set_global)] => sub {
@@ -318,6 +320,7 @@ get '/data' => [qw(set_global)] => sub {
     my $arg = from_json($arg_json);
 
     my $data = [];
+    my $data2 = [];
 
     while (my ($service, $conf) = each(%$arg)) {
         #my $row = db->select_row("SELECT meth, token_type, token_key, uri FROM endpoints WHERE service=?", $service);
@@ -327,13 +330,18 @@ get '/data' => [qw(set_global)] => sub {
         my $uri_template = $endpoint{$service}->{uri};
         if ($service eq 'ken' || $service eq 'ken2') {
             my $zipcode = ( $conf->{keys} || [] )->[0] || ($conf->{params} || {})->{zipcode};
-            push @$data, {
-                service => $service,
-                data => {
-                    zipcode => $zipcode,
-                    addresses => zipcode_to_addresses($zipcode),
-                },
-            };
+            #push @$data, {
+            #    service => $service,
+            #    data => {
+            #        zipcode => $zipcode,
+            #        addresses => zipcode_to_addresses($zipcode),
+            #    },
+            #};
+            my $zip_json = encode_json({ # todo
+                zipcode   => $zipcode,
+                addresses => zipcode_to_addresses($zipcode),
+            });
+            push @$data2, sprintf("{\"service\":\"%s\",\"data\":%s}", $service, $zip_json);
             next;
         }
 
@@ -348,11 +356,14 @@ get '/data' => [qw(set_global)] => sub {
             }
         }
         my $uri = sprintf($uri_template, @{$conf->{keys} || []});
-        push @$data, { service => $service, data => fetch_api($method, $uri, $headers, $params) };
+        #push @$data, { service => $service, data => fetch_api($method, $uri, $headers, $params) };
+        push @$data2, sprintf("{\"service\":\"%s\",\"data\":%s}", $service, fetch_api($method, $uri, $headers, $params));
+
     }
 
     $c->res->header('Content-Type', 'application/json');
-    $c->res->body(encode_json($data));
+    #$c->res->body(encode_json($data));
+    $c->res->body('[' . join(',', @$data2) . ']');
 };
 
 get '/initialize' => sub {
