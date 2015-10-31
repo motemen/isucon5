@@ -6,7 +6,7 @@ use warnings;
 use utf8;
 use Kossy;
 use DBIx::Sunny;
-use JSON::XS;
+use JSON;
 use Furl;
 use URI;
 use IO::Socket::SSL qw(SSL_VERIFY_NONE);
