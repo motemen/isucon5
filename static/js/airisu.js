@@ -1,8 +1,26 @@
+var SERVICES = 'ken ken2 surname givenname tenki perfectsec perfectsec_attacked'.split(/ /);
+
 $(function(){
+  // window.setInterval(function(){
+  //   $.get('/data', function(data){ render(data); });
+  // }, AIR_ISU_REFRESH_INTERVAL);
+  // $.get('/data', function(data){ render(data); });
+
   window.setInterval(function(){
-    $.get('/data', function(data){ render(data); });
+    for (var i = 0; i < SERVICES.length; i++) {
+      $.get('/data.s?service=' + SERVICES[i], function(data){ render(data); });
+    }
   }, AIR_ISU_REFRESH_INTERVAL);
-  $.get('/data', function(data){ render(data); });
+
+  var all = [];
+  for (var i = 0; i < SERVICES.length; i++) {
+    $.get('/data.s?service=' + SERVICES[i], function(data){
+      all = all.concat(data);
+      if (all.length === SERVICES.length) {
+        render(data);
+      }
+    });
+  }
 });
 
 function render(list) {

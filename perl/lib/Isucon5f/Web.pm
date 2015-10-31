@@ -257,6 +257,42 @@ get '/data' => [qw(set_global)] => sub {
     $c->res->body(encode_json($data));
 };
 
+get '/data.s' => [qw(set_global)] => sub {
+    my ($self, $c) = @_;
+    $c->res->headers->header('X-Dispatch' => 'GET-data-s');
+    my $user = current_user();
+    $c->halt(403) if !$user;
+
+    my $arg_json = db->select_one("SELECT arg FROM subscriptions WHERE user_id=?", $user->{id});
+    my $arg = from_json($arg_json);
+
+    my $data = [];
+
+    my $service = $c->req->parameters->{service};
+    if (my $conf = $arg->{$service}) {
+        my $row = db->select_row("SELECT meth, token_type, token_key, uri FROM endpoints WHERE service=?", $service);
+        my $method = $row->{meth};
+        my $token_type = $row->{token_type};
+        my $token_key = $row->{token_key};
+        my $uri_template = $row->{uri};
+        my $headers = +{};
+        my $params = $conf->{params} || +{};
+        given ($token_type) {
+            when ('header') {
+                $headers->{$token_key} = $conf->{'token'};
+            }
+            when ('param') {
+                $params->{$token_key} = $conf->{'token'};
+            }
+        }
+        my $uri = sprintf($uri_template, @{$conf->{keys} || []});
+        push @$data, { service => $service, data => fetch_api($method, $uri, $headers, $params) };
+    }
+
+    $c->res->header('Content-Type', 'application/json');
+    $c->res->body(encode_json($data));
+};
+
 get '/initialize' => sub {
     my ($self, $c) = @_;
     $c->res->headers->header('X-Dispatch' => 'GET-initialize');
