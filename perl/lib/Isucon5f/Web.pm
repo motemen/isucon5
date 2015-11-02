@@ -112,6 +112,7 @@ SELECT id, email, grade FROM users WHERE email=? AND passhash=digest(salt || ?, 
 SQL
     my $user = db->select_row($query, $email, $password);
     if ($user) {
+        stash->{user} = $user;
         session->{user_id} = $user->{id};
     }
     return $user;
